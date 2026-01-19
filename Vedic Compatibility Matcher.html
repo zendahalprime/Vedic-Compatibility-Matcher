@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vedic Compatibility Matcher</title>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #c41e3a;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --warning-color: #ef4444;
+            --light-bg: #f9fafb;
+            --card-bg: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+            color: var(--text-primary);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+            background: white;
+            color: var(--text-primary);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 5px rgba(196, 30, 58, 0.2);
+        }
+
+        .gender-group {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: normal;
+            margin: 0;
+        }
+
+        input[type="radio"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            font-size: 1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-calculate {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-calculate:hover {
+            background: #a01830;
+            transform: scale(1.02);
+        }
+
+        .btn-reset {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-reset:hover {
+            background: #d1d5db;
+        }
+
+        .results-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .results-section.show {
+            display: block;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 20px;
+        }
+
+        .result-header h2 {
+            font-size: 1.8em;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .match-percentage {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin: 15px 0;
+        }
+
+        .guna-score {
+            font-size: 1.3em;
+            color: var(--text-secondary);
+        }
+
+        .compatibility-meter {
+            width: 100%;
+            height: 20px;
+            background: var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
+            width: 0%;
+            transition: width 0.8s ease-out;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .result-box {
+            background: var(--light-bg);
+            border-left: 5px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .result-box.safe {
+            border-left-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .result-box.warning {
+            border-left-color: var(--warning-color);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .result-box-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .result-box-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .profile-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .profile-card {
+            background: var(--light-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border-top: 5px solid var(--accent-color);
+        }
+
+        .profile-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .profile-detail {
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            margin: 6px 0;
+            line-height: 1.6;
+        }
+
+        .recommendations {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid var(--secondary-color);
+        }
+
+        .recommendations h3 {
+            color: var(--primary-color);
+            margin-bottom: 12px;
+            font-size: 1.1em;
+        }
+
+        .recommendations li {
+            margin: 8px 0;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .disclaimer {
+            background: #fef3c7;
+            border-left: 5px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 25px;
+            font-size: 0.9em;
+            color: #92400e;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-comparison {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .match-percentage {
+                font-size: 2em;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error-message {
+            color: var(--warning-color);
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: var(--success-color);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .warning-badge {
+            display: inline-block;
+            background: var(--warning-color);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 Vedic Compatibility Matcher</h1>
+            <p>Analyze Marriage Potential Using Vedic Astrology</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Male Form -->
+            <div class="card">
+                <div class="card-title">👨 Male Profile</div>
+                
+                <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" id="maleFirstName" placeholder="e.g., Arjun">
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name / Surname (Thar) *</label>
+                    <input type="text" id="maleLastName" placeholder="e.g., Thapa, Adhikari">
+                </div>
+
+                <div class="form-group">
+                    <label>Date of Birth (DD/MM/YYYY or BS) *</label>
+                    <input type="text" id="maleDOB" placeholder="12/04/2002 or 2058/01/30">
+                </div>
+
+                <div class="form-group">
+                    <label>Birth Time (HH:MM) *</label>
+                    <input type="text" id="maleBirthTime" placeholder="05:00">
+                </div>
+
+                <div class="form-group">
+                    <label>Birth Place (City, Country) *</label>
+                    <input type="text" id="maleBirthPlace" placeholder="Kushmisera, Nepal">
+                </div>
+
+                <div class="form-group">
+                    <label>Height (cm, Optional)</label>
+                    <input type="number" id="maleHeight" placeholder="170">
+                </div>
+
+                <div class="form-group">
+                    <label>Known Moon Sign (Optional)</label>
+                    <select id="maleMoonSign">
+                        <option value="">Select...</option>
+                        <option value="Aries">Aries (Mesh)</option>
+                        <option value="Taurus">Taurus (Vrishabh)</option>
+                        <option value="Gemini">Gemini (Mithun)</option>
+                        <option value="Cancer">Cancer (Karka)</option>
+                        <option value="Leo">Leo (Simha)</option>
+                        <option value="Virgo">Virgo (Kanya)</option>
+                        <option value="Libra">Libra (Tula)</option>
+                        <option value="Scorpio">Scorpio (Vrischika)</option>
+                        <option value="Sagittarius">Sagittarius (Dhanu)</option>
+                        <option value="Capricorn">Capricorn (Makara)</option>
+                        <option value="Aquarius">Aquarius (Kumbha)</option>
+                        <option value="Pisces">Pisces (Meena)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Female Form -->
+            <div class="card">
+                <div class="card-title">👩 Female Profile</div>
+                
+                <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" id="femaleFirstName" placeholder="e.g., Priya">
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name / Surname (Thar) *</label>
+                    <input type="text" id="femaleLastName" placeholder="e.g., Adhikari, Shrestha">
+                </div>
+
+                <div class="form-group">
+                    <label>Date of Birth (DD/MM/YYYY or BS) *</label>
+                    <input type="text" id="femaleDOB" placeholder="28/05/2003 or 2060/02/15">
+                </div>
+
+                <div class="form-group">
+                    <label>Birth Time (HH:MM) *</label>
+                    <input type="text" id="femaleBirthTime" placeholder="08:30">
+                </div>
+
+                <div class="form-group">
+                    <label>Birth Place (City, Country) *</label>
+                    <input type="text" id="femaleBirthPlace" placeholder="Kathmandu, Nepal">
+                </div>
+
+                <div class="form-group">
+                    <label>Height (cm, Optional)</label>
+                    <input type="number" id="femaleHeight" placeholder="160">
+                </div>
+
+                <div class="form-group">
+                    <label>Known Moon Sign (Optional)</label>
+                    <select id="femaleMoonSign">
+                        <option value="">Select...</option>
+                        <option value="Aries">Aries (Mesh)</option>
+                        <option value="Taurus">Taurus (Vrishabh)</option>
+                        <option value="Gemini">Gemini (Mithun)</option>
+                        <option value="Cancer">Cancer (Karka)</option>
+                        <option value="Leo">Leo (Simha)</option>
+                        <option value="Virgo">Virgo (Kanya)</option>
+                        <option value="Libra">Libra (Tula)</option>
+                        <option value="Scorpio">Scorpio (Vrischika)</option>
+                        <option value="Sagittarius">Sagittarius (Dhanu)</option>
+                        <option value="Capricorn">Capricorn (Makara)</option>
+                        <option value="Aquarius">Aquarius (Kumbha)</option>
+                        <option value="Pisces">Pisces (Meena)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Button Group -->
+        <div class="card" style="margin-bottom: 30px;">
+            <div class="button-group">
+                <button class="btn-calculate" onclick="calculateCompatibility()">🔮 Calculate Compatibility</button>
+                <button class="btn-reset" onclick="resetForm()">🔄 Reset</button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="result-header">
+                <h2>Compatibility Analysis</h2>
+                <div class="match-percentage" id="matchPercentage">0%</div>
+                <div class="guna-score" id="gunaScore">Guna Milan: 0/36</div>
+                <div class="compatibility-meter">
+                    <div class="meter-fill" id="meterFill"></div>
+                </div>
+            </div>
+
+            <div class="results-grid">
+                <div class="result-box safe" id="clanResult">
+                    <div class="result-box-label">Clan/Gotra Match</div>
+                    <div class="result-box-value" id="clanStatus">Safe ✓</div>
+                </div>
+
+                <div class="result-box" id="dosha-result">
+                    <div class="result-box-label">Dosha Status</div>
+                    <div class="result-box-value" id="doshaStatus">No Issues ✓</div>
+                </div>
+
+                <div class="result-box" id="nadi-result">
+                    <div class="result-box-label">Nadi Match</div>
+                    <div class="result-box-value" id="nadiStatus">Compatible ✓</div>
+                </div>
+
+                <div class="result-box" id="agni-result">
+                    <div class="result-box-label">Agni (Element) Match</div>
+                    <div class="result-box-value" id="agniStatus">Compatible ✓</div>
+                </div>
+            </div>
+
+            <div class="profile-comparison">
+                <div class="profile-card">
+                    <div class="profile-name" id="maleProfileName">Male Profile</div>
+                    <div class="profile-detail"><strong>Rashi (Moon Sign):</strong> <span id="maleRashi">-</span></div>
+                    <div class="profile-detail"><strong>Nakshatra:</strong> <span id="maleNakshatra">-</span></div>
+                    <div class="profile-detail"><strong>Age at Marriage:</strong> <span id="maleAge">-</span></div>
+                </div>
+
+                <div class="profile-card">
+                    <div class="profile-name" id="femaleProfileName">Female Profile</div>
+                    <div class="profile-detail"><strong>Rashi (Moon Sign):</strong> <span id="femaleRashi">-</span></div>
+                    <div class="profile-detail"><strong>Nakshatra:</strong> <span id="femaleNakshatra">-</span></div>
+                    <div class="profile-detail"><strong>Age at Marriage:</strong> <span id="femaleAge">-</span></div>
+                </div>
+            </div>
+
+            <div class="recommendations">
+                <h3>✨ Recommendations</h3>
+                <ul id="recommendationsList">
+                    <li>Compatibility is strong</li>
+                </ul>
+            </div>
+
+            <div class="disclaimer">
+                <strong>⚠️ Disclaimer:</strong> This analysis is based on Vedic astrology principles and provides general guidance. Actual compatibility depends on many factors including mutual respect, communication, and personal growth. Consult a professional astrologer for detailed muhurta (auspicious timing) and complete chart analysis.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Nepali Gotra Database
+        const gotras = {
+            // Thapas
+            'thapa': 'Bharadwaj',
+            'thapa magar': 'Bharadwaj',
+            
+            // Adhikaris
+            'adhikari': 'Kashyap',
+            
+            // Shresthas
+            'shrestha': 'Bharadwaj',
+            
+            // Dahlais
+            'dahlai': 'Bhriggu',
+            
+            // Rais
+            'rai': 'Various (Check genealogy)',
+            
+            // Karki
+            'karki': 'Vishvamitra',
+            
+            // Sharma
+            'sharma': 'Bharadwaj',
+            'sharma pant': 'Bharadwaj',
+            
+            // Pandey
+            'pandey': 'Bharadwaj',
+            
+            // Nepal
+            'nepal': 'Various',
+            
+            // Gurung
+            'gurung': 'Various (Gurung clan)',
+            
+            // Magar
+            'magar': 'Kashyap',
+            
+            // Limbu
+            'limbu': 'Various (Limbu clan)',
+            
+            // Tamang
+            'tamang': 'Various (Tamang clan)',
+            
+            // Ghimire
+            'ghimire': 'Bhriggu',
+            
+            // Koirala
+            'koirala': 'Kashyap',
+            
+            // Joshi
+            'joshi': 'Vasishtha',
+            
+            // Bhatt
+            'bhatt': 'Bharadwaj',
+            
+            // Paudel
+            'paudel': 'Bharadwaj',
+            
+            // Subedi
+            'subedi': 'Bharadwaj',
+            
+            // Khadka
+            'khadka': 'Bharadwaj',
+            
+            // Basnet
+            'basnet': 'Kashyap',
+            
+            // Dhakal
+            'dhakal': 'Kashyap',
+            
+            // Bhandari
+            'bhandari': 'Bharadwaj',
+            
+            // Pant
+            'pant': 'Bharadwaj',
+            
+            // Pokharel
+            'pokharel': 'Vasishtha',
+            
+            // Singh
+            'singh': 'Various (Rajput)',
+            
+            // Rana
+            'rana': 'Various (Rana clan)',
+            
+            // Chhetri
+            'chhetri': 'Various (Chhetri clan)',
+            
+            // Chand
+            'chand': 'Bharadwaj'
+        };
+
+        function getGotra(surname) {
+            const key = surname.toLowerCase().trim();
+            return gotras[key] || 'Unknown (Verify with family)';
+        }
+
+        function calculateAge(dobString) {
+            try {
+                let dob;
+                
+                if (dobString.includes('/')) {
+                    const parts = dobString.split('/');
+                    if (parts[0].length === 4) {
+                        // BS format: YYYY/MM/DD
+                        dob = new Date(parseInt(parts[0]) - 57, parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    } else {
+                        // AD format: DD/MM/YYYY
+                        dob = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                    }
+                } else {
+                    return 0;
+                }
+
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+                
+                return Math.max(0, age);
+            } catch {
+                return 0;
+            }
+        }
+
+        function validateInputs() {
+            const required = [
+                'maleFirstName', 'maleLastName', 'maleDOB', 'maleBirthTime', 'maleBirthPlace',
+                'femaleFirstName', 'femaleLastName', 'femaleDOB', 'femaleBirthTime', 'femaleBirthPlace'
+            ];
+
+            for (let id of required) {
+                if (!document.getElementById(id).value.trim()) {
+                    alert('Please fill all required fields (marked with *)');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function calculateCompatibility() {
+            if (!validateInputs()) return;
+
+            // Gather data
+            const maleFirstName = document.getElementById('maleFirstName').value;
+            const maleLastName = document.getElementById('maleLastName').value;
+            const femaleFirstName = document.getElementById('femaleFirstName').value;
+            const femaleLastName = document.getElementById('femaleLastName').value;
+
+            const maleMoonSign = document.getElementById('maleMoonSign').value || 'Pisces';
+            const femaleMoonSign = document.getElementById('femaleMoonSign').value || 'Virgo';
+
+            const maleAge = calculateAge(document.getElementById('maleDOB').value);
+            const femaleAge = calculateAge(document.getElementById('femaleDOB').value);
+
+            // Gotra matching
+            const maleGotra = getGotra(maleLastName);
+            const femaleGotra = getGotra(femaleLastName);
+            const sameGotra = maleGotra.toLowerCase() === femaleGotra.toLowerCase();
+
+            // Guna calculation (simplified Vedic logic)
+            let gunaScore = 0;
+            const recommendations = [];
+
+            // 1. Varna (Caste) - 1 point (simplified)
+            gunaScore += 1;
+
+            // 2. Vasya (Control) - 2 points
+            const vasya = calculateVasya(maleMoonSign, femaleMoonSign);
+            gunaScore += vasya;
+            if (vasya === 0) recommendations.push('⚠️ Vasya (control) compatibility is weak.');
+
+            // 3. Tara (Stars) - 3 points
+            const tara = calculateTara(maleMoonSign, femaleMoonSign);
+            gunaScore += tara;
+            if (tara < 1) recommendations.push('⚠️ Tara (star) compatibility needs attention.');
+
+            // 4. Yoni (Nature) - 4 points
+            const yoni = 4; // Default positive
+            gunaScore += yoni;
+
+            // 5. Graha Maitri (Planetary Friendship) - 5 points
+            const graha = calculateGrahaMaitri(maleMoonSign, femaleMoonSign);
+            gunaScore += graha;
+            if (graha < 3) recommendations.push('⚠️ Planetary friendship shows moderate compatibility.');
+
+            // 6. Gana (Nature/Temperament) - 6 points
+            const gana = calculateGana(maleMoonSign, femaleMoonSign);
+            gunaScore += gana;
+            if (gana === 0) recommendations.push('⚠️ Temperament (Gana) compatibility needs work.');
+
+            // 7. Bhakut (Sexual compatibility) - 7 points
+            const bhakut = calculateBhakut(maleMoonSign, femaleMoonSign);
+            gunaScore += bhakut;
+            if (bhakut === 0) recommendations.push('⚠️ Bhakut (sexual) compatibility is challenging.');
+
+            // 8. Nadi (Health/Pulse) - 8 points
+            const nadi = calculateNadi(maleMoonSign, femaleMoonSign);
+            gunaScore += nadi;
+            if (nadi === 0) recommendations.push('⚠️ Nadi (health/vitality) compatibility needs consideration.');
+
+            // Gotra impact
+            if (sameGotra) {
+                recommendations.push('❌ Same Gotra detected - Traditional families may object.');
+                gunaScore = Math.max(0, gunaScore - 3);
+            } else {
+                recommendations.push('✅ Different Gotra - Culturally compatible.');
+            }
+
+            // Age compatibility
+            const ageDiff = Math.abs(maleAge - femaleAge);
+            if (ageDiff > 10) {
+                recommendations.push('⚠️ Significant age gap - Discuss life goals.');
+            } else if (ageDiff <= 5) {
+                recommendations.push('✅ Age compatibility is good.');
+            }
+
+            // Moon sign compatibility
+            const moonCompatibility = calculateMoonCompatibility(maleMoonSign, femaleMoonSign);
+            if (moonCompatibility > 8) {
+                recommendations.push('✅ Excellent emotional compatibility.');
+            }
+
+            // Calculate final percentage
+            const maxGuna = 36;
+            let percentage = Math.round((gunaScore / maxGuna) * 100);
+            percentage = Math.min(99, Math.max(1, percentage)); // Cap at 99%
+
+            // Add bonus for different gotras
+            if (!sameGotra) {
+                percentage = Math.min(99, percentage + 5);
+            }
+
+            // Display results
+            displayResults({
+                maleFirstName, maleLastName, maleMoonSign, maleAge, maleGotra,
+                femaleFirstName, femaleLastName, femaleMoonSign, femaleAge, femaleGotra,
+                gunaScore, maxGuna, percentage, sameGotra, nadi, recommendations
+            });
+        }
+
+        function calculateVasya(maleSign, femaleSign) {
+            const vasya = {
+                'Aries': ['Taurus', 'Gemini'],
+                'Taurus': ['Gemini', 'Cancer'],
+                'Gemini': ['Cancer', 'Leo'],
+                'Cancer': ['Leo', 'Virgo'],
+                'Leo': ['Virgo', 'Libra'],
+                'Virgo': ['Libra', 'Scorpio'],
+                'Libra': ['Scorpio', 'Sagittarius'],
+                'Scorpio': ['Sagittarius', 'Capricorn'],
+                'Sagittarius': ['Capricorn', 'Aquarius'],
+                'Capricorn': ['Aquarius', 'Pisces'],
+                'Aquarius': ['Pisces', 'Aries'],
+                'Pisces': ['Aries', 'Taurus']
+            };
+            return vasya[maleSign] && vasya[maleSign].includes(femaleSign) ? 2 : 0;
+        }
+
+        function calculateTara(maleSign, femaleSign) {
+            const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+            const maleIndex = signs.indexOf(maleSign);
+            const femaleIndex = signs.indexOf(femaleSign);
+            const diff = Math.abs(maleIndex - femaleIndex);
+            return (diff === 2 || diff === 4 || diff === 8 || diff === 10) ? 3 : 1;
+        }
+
+        function calculateGrahaMaitri(maleSign, femaleSign) {
+            const friendships = {
+                'Aries': { 'Leo': 5, 'Sagittarius': 5, 'Gemini': 4, 'Aquarius': 3 },
+                'Taurus': { 'Virgo': 5, 'Capricorn': 5, 'Cancer': 4, 'Pisces': 3 },
+                'Gemini': { 'Libra': 5, 'Aquarius': 5, 'Leo': 4, 'Aries': 4 },
+                'Cancer': { 'Scorpio': 5, 'Pisces': 5, 'Taurus': 4, 'Virgo': 3 },
+                'Leo': { 'Sagittarius': 5, 'Aries': 5, 'Gemini': 4, 'Libra': 3 },
+                'Virgo': { 'Capricorn': 5, 'Taurus': 5, 'Cancer': 4, 'Scorpio': 3 },
+                'Libra': { 'Aquarius': 5, 'Gemini': 5, 'Leo': 4, 'Sagittarius': 3 },
+                'Scorpio': { 'Pisces': 5, 'Cancer': 5, 'Virgo': 4, 'Capricorn': 3 },
+                'Sagittarius': { 'Aries': 5, 'Leo': 5, 'Libra': 4, 'Aquarius': 3 },
+                'Capricorn': { 'Taurus': 5, 'Virgo': 5, 'Scorpio': 4, 'Pisces': 3 },
+                'Aquarius': { 'Gemini': 5, 'Libra': 5, 'Sagittarius': 4, 'Aries': 3 },
+                'Pisces': { 'Cancer': 5, 'Scorpio': 5, 'Taurus': 4, 'Capricorn': 3 }
+            };
+            return (friendships[maleSign] && friendships[maleSign][femaleSign]) || 2;
+        }
+
+        function calculateGana(maleSign, femaleSign) {
+            const gana = {
+                'Aries': 'Rakshasa', 'Leo': 'Rakshasa', 'Sagittarius': 'Deva',
+                'Taurus': 'Manushya', 'Virgo': 'Deva', 'Capricorn': 'Deva',
+                'Gemini': 'Deva', 'Libra': 'Rakshasa', 'Aquarius': 'Rakshasa',
+                'Cancer': 'Deva', 'Scorpio': 'Rakshasa', 'Pisces': 'Manushya'
+            };
+            const maleGana = gana[maleSign];
+            const femaleGana = gana[femaleSign];
+            if (maleGana === femaleGana) return 6;
+            if ((maleGana === 'Deva' && femaleGana === 'Manushya') || (maleGana === 'Manushya' && femaleGana === 'Deva')) return 4;
+            return 0;
+        }
+
+        function calculateBhakut(maleSign, femaleSign) {
+            const bhakut = {
+                'Aries': { 'Gemini': 7, 'Leo': 7, 'Sagittarius': 7 },
+                'Taurus': { 'Cancer': 7, 'Virgo': 7, 'Capricorn': 7 },
+                'Gemini': { 'Leo': 7, 'Libra': 7, 'Aquarius': 7 },
+                'Cancer': { 'Virgo': 7, 'Scorpio': 7, 'Pisces': 7 },
+                'Leo': { 'Libra': 7, 'Sagittarius': 7, 'Aries': 7 },
+                'Virgo': { 'Scorpio': 7, 'Capricorn': 7, 'Taurus': 7 },
+                'Libra': { 'Sagittarius': 7, 'Aquarius': 7, 'Gemini': 7 },
+                'Scorpio': { 'Capricorn': 7, 'Pisces': 7, 'Cancer': 7 },
+                'Sagittarius': { 'Aquarius': 7, 'Aries': 7, 'Leo': 7 },
+                'Capricorn': { 'Pisces': 7, 'Taurus': 7, 'Virgo': 7 },
+                'Aquarius': { 'Aries': 7, 'Gemini': 7, 'Libra': 7 },
+                'Pisces': { 'Taurus': 7, 'Cancer': 7, 'Scorpio': 7 }
+            };
+            return (bhakut[maleSign] && bhakut[maleSign][femaleSign]) || 2;
+        }
+
+        function calculateNadi(maleSign, femaleSign) {
+            const nadi = {
+                'Aries': 'Pitta', 'Leo': 'Pitta', 'Sagittarius': 'Pitta',
+                'Taurus': 'Kapha', 'Virgo': 'Vata', 'Capricorn': 'Vata',
+                'Gemini': 'Vata', 'Libra': 'Vata', 'Aquarius': 'Vata',
+                'Cancer': 'Kapha', 'Scorpio': 'Pitta', 'Pisces': 'Kapha'
+            };
+            const maleNadi = nadi[maleSign];
+            const femaleNadi = nadi[femaleSign];
+            if (maleNadi === femaleNadi) return 0; // Same Nadi is problematic
+            if (maleNadi && femaleNadi) return 8; // Different Nadi is compatible
+            return 4;
+        }
+
+        function calculateMoonCompatibility(maleSign, femaleSign) {
+            const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+            const maleIndex = signs.indexOf(maleSign);
+            const femaleIndex = signs.indexOf(femaleSign);
+            const diff = Math.abs(maleIndex - femaleIndex);
+            return Math.min(12 - diff, diff);
+        }
+
+        function displayResults(data) {
+            document.getElementById('matchPercentage').textContent = data.percentage + '%';
+            document.getElementById('gunaScore').textContent = `Guna Milan: ${data.gunaScore}/${data.maxGuna}`;
+            
+            const meterFill = document.getElementById('meterFill');
+            meterFill.style.width = data.percentage + '%';
+
+            // Clan status
+            const clanResult = document.getElementById('clanResult');
+            const clanStatus = document.getElementById('clanStatus');
+            if (data.sameGotra) {
+                clanResult.classList.remove('safe');
+                clanResult.classList.add('warning');
+                clanStatus.textContent = '⚠️ Same Gotra';
+            } else {
+                clanResult.classList.add('safe');
+                clanResult.classList.remove('warning');
+                clanStatus.textContent = '✅ Different Gotra';
+            }
+
+            // Dosha status
+            document.getElementById('doshaStatus').textContent = data.percentage > 60 ? '✅ Manageable' : '⚠️ Check Details';
+
+            // Nadi status
+            const nadiText = data.nadi === 0 ? '⚠️ Same Nadi (Challenge)' : '✅ Different Nadi';
+            document.getElementById('nadiStatus').textContent = nadiText;
+
+            // Agni status
+            document.getElementById('agniStatus').textContent = data.percentage > 70 ? '✅ Compatible' : '⚠️ Mixed';
+
+            // Profile names and details
+            document.getElementById('maleProfileName').textContent = data.maleFirstName + ' ' + data.maleLastName;
+            document.getElementById('femaleProfileName').textContent = data.femaleFirstName + ' ' + data.femaleLastName;
+
+            document.getElementById('maleRashi').textContent = data.maleMoonSign;
+            document.getElementById('femaleRashi').textContent = data.femaleMoonSign;
+
+            document.getElementById('maleNakshatra').textContent = 'Gotra: ' + data.maleGotra;
+            document.getElementById('femaleNakshatra').textContent = 'Gotra: ' + data.femaleGotra;
+
+            document.getElementById('maleAge').textContent = data.maleAge + ' years';
+            document.getElementById('femaleAge').textContent = data.femaleAge + ' years';
+
+            // Recommendations
+            const recommendationsList = document.getElementById('recommendationsList');
+            recommendationsList.innerHTML = '';
+            data.recommendations.forEach(rec => {
+                const li = document.createElement('li');
+                li.textContent = rec;
+                recommendationsList.appendChild(li);
+            });
+
+            // Show results
+            document.getElementById('resultsSection').classList.add('show');
+            document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input[type="text"], input[type="number"]').forEach(el => el.value = '');
+            document.querySelectorAll('select').forEach(el => el.value = '');
+            document.getElementById('resultsSection').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
